@@ -1,11 +1,3 @@
-resource "aws_lambda_function" "mtls_lambda" {
-  filename         = "lambda.zip"
-  function_name    = "mtls-check"
-  role             = aws_iam_role.lambda_exec.arn
-  handler          = "index.lambda_handler"
-  runtime         = "python3.8"
-}
-
 resource "aws_iam_role" "lambda_exec" {
   name = "lambda_exec_role"
   assume_role_policy = jsonencode({
@@ -29,4 +21,36 @@ resource "aws_lambda_permission" "alb_lambda" {
 # outputs.tf
 output "alb_dns_name" {
   value = aws_lb.webapp_alb.dns_name
+}
+
+resource "aws_lambda_function" "mtls_lambda" {
+  function_name    = "mtls-check"
+  role             = aws_iam_role.lambda_exec.arn
+  handler          = "index.lambda_handler"
+  runtime         = "python3.8"
+  filename        = ""
+  source_code_hash = filebase64sha256("lambda.zip")
+
+  code {
+    zip_file = <<EOF
+import json
+import hashlib
+
+def lambda_handler(event, context):
+    headers = event.get("headers", {})
+    cert_thumbprint = headers.get("x-amzn-tls-tls-client-cert-thumbprint", "No Certificate Provided")
+    if cert_thumbprint != "No Certificate Provided":
+        thumbprint_hash = hashlib.md5(cert_thumbprint.encode()).hexdigest()
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "text/plain"},
+            "body": f"Client Certificate Thumbprint Hash: {thumbprint_hash}"
+        }
+    return {
+        "statusCode": 403,
+        "headers": {"Content-Type": "text/plain"},
+        "body": "No valid certificate"
+    }
+EOF
+  }
 }
