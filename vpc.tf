@@ -27,5 +27,3 @@ resource "aws_route" "webapp_route" {
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.webapp_igw.id
 }
-
-}
