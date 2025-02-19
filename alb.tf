@@ -6,6 +6,12 @@ resource "aws_lb" "webapp_alb" {
   subnets           = [aws_subnet.webapp_subnet_1.id, aws_subnet.webapp_subnet_2.id]
 }
 
+resource "random_string" "suffix" {
+  length  = 10
+  special = false
+  upper   = false
+}
+
 resource "aws_lb_target_group" "static_tg" {
   name     = "static-tg-${random_string.suffix.result}"
   port     = 80
@@ -20,9 +26,3 @@ resource "aws_lb_target_group" "api_tg" {
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
-
-resource "random_string" "suffix" {
-  length  = 6
-  special = false
-  upper   = false
-}
