@@ -7,30 +7,42 @@ resource "aws_lb" "webapp_alb" {
 }
 
 resource "aws_lb_target_group" "static_tg" {
-  name     = "static-tg"
+  name     = "static-tg-${random_string.suffix.result}"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
 resource "aws_lb_target_group" "api_tg" {
-  name     = "api-tg"
+  name     = "api-tg-${random_string.suffix.result}"
   port     = 80
   protocol = "HTTP"
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
-resource "aws_lb_listener" "http_listener" {
-  load_balancer_arn = aws_lb.webapp_alb.arn
-  port              = 80
-  protocol          = "HTTP"
+resource "aws_secretsmanager_secret" "trust_store" {
+  name_prefix = "ec2-trust-store-"
+}
 
-  default_action {
-    type = "fixed-response"
-    fixed_response {
-      content_type = "text/plain"
-      message_body = "Not Found"
-      status_code  = "404"
-    }
-  }
+resource "aws_s3_bucket" "trust_store_bucket" {
+  bucket_prefix = "ec2-trust-store-"
+}
+
+resource "aws_iam_role" "lambda_exec" {
+  name_prefix = "lambda_exec_role-"
+  assume_role_policy = jsonencode({
+    Statement = [{
+      Action = "sts:AssumeRole"
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+    }]
+  })
+}
+
+resource "random_string" "suffix" {
+  length  = 6
+  special = false
+  upper   = false
 }
