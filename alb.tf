@@ -20,14 +20,6 @@ resource "aws_lb_target_group" "api_tg" {
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
-resource "aws_secretsmanager_secret" "trust_store" {
-  name_prefix = "ec2-trust-store-"
-}
-
-resource "aws_s3_bucket" "trust_store_bucket" {
-  bucket_prefix = "ec2-trust-store-"
-}
-
 resource "aws_iam_role" "lambda_exec" {
   name_prefix = "lambda_exec_role-"
   assume_role_policy = jsonencode({
