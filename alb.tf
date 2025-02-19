@@ -20,18 +20,6 @@ resource "aws_lb_target_group" "api_tg" {
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
-resource "aws_iam_role" "lambda_exec" {
-  name_prefix = "lambda_exec_role-"
-  assume_role_policy = jsonencode({
-    Statement = [{
-      Action = "sts:AssumeRole"
-      Effect = "Allow"
-      Principal = {
-        Service = "lambda.amazonaws.com"
-      }
-    }]
-  })
-}
 
 resource "random_string" "suffix" {
   length  = 6
