@@ -24,7 +24,7 @@ resource "aws_secretsmanager_secret_version" "trust_store_version" {
   MIIDeDCCAmCgAwIBAgIUbKQGiXQs/ScfDI8e6x1Rdhb1H9IwDQYJKoZIhvcNAQEL
   BQAwYjELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFjAUBgNVBAcM
   DVNhbiBGcmFuY2lzY28xETAPBgNVBAoMCE15Um9vdENBMRMwEQYDVQQDDApNeSBS
-  b290IENBMB4XDTI1MDIxOTEyMzQzMloXDTM1MDIxNzEyMzQzMlowYjELMAkGA1UE
+  b290IENBMB4XDTI5MDIxOTEyMzQzMloXDTM5MDIxNzEyMzQzMlowYjELMAkGA1UE
   BhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFjAUBgNVBAcMDVNhbiBGcmFuY2lz
   Y28xETAPBgNVBAoMCE15Um9vdENBMRMwEQYDVQQDDApNeSBSb290IENBMIIBIjAN
   BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnVEEnRMNy6joroGCe81CAXjOPLq1
@@ -42,4 +42,35 @@ resource "aws_secretsmanager_secret_version" "trust_store_version" {
   gJC3gPKoorISZe58Fjx41VNpZOSCvFYRF9/vhA==
   -----END CERTIFICATE-----
   EOT
+}
+
+resource "aws_s3_bucket" "trust_store_bucket" {
+  bucket = "ec2-trust-store-bucket"
+}
+
+resource "aws_s3_object" "trust_store_cert" {
+  bucket = aws_s3_bucket.trust_store_bucket.id
+  key    = "trust-store-cert.pem"
+  content = <<EOT
+  -----BEGIN CERTIFICATE-----
+  MIIDeDCCAmCgAwIBAgIUbKQGiXQs/ScfDI8e6x1Rdhb1H9IwDQYJKoZIhvcNAQEL
+  BQAwYjELMAkGA1UEBhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFjAUBgNVBAcM
+  DVNhbiBGcmFuY2lzY28xETAPBgNVBAoMCE15Um9vdENBMRMwEQYDVQQDDApNeSBS
+  b290IENBMB4XDTI5MDIxOTEyMzQzMloXDTM5MDIxNzEyMzQzMlowYjELMAkGA1UE
+  BhMCVVMxEzARBgNVBAgMCkNhbGlmb3JuaWExFjAUBgNVBAcMDVNhbiBGcmFuY2lz
+  Y28xETAPBgNVBAoMCE15Um9vdENBMRMwEQYDVQQDDApNeSBSb290IENBMIIBIjAN
+  BgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAnVEEnRMNy6joroGCe81CAXjOPLq1
+  8WrtqrdZ8H0N4jUj8efHfJslfQZtABByJM5GGCrJQjwn1ezdQW0fzhAXTXX/3yk7
+  02HSnS5Z8lzIEwn0BI71vL4u4frp75DyV/nMlPfQ0NtOEvyRtsx5lDt2HsA4zern
+  GGnISNyhM6wa0zAm7lLAwEwuLB6YNF2FeSSYRdROeOjViWOH/BhH/Ew/M0w/6t6a
+  sXTYFRIht1mIR5UHkPGhYfO3VDgB1fnNl9e9wH7deDAPW/jXX5dc0CkWjSqlZ9iB
+  r4+0JVvyBkfrW+9MIN9SnGkjhLToYx6vChmAEddue22wnRcCqKMs9tWOgQIDAQAB
+  -----END CERTIFICATE-----
+  EOT
+}
+
+resource "aws_lb_trust_store" "alb_trust_store" {
+  name                          = "alb-trust-store"
+  ca_certificates_bundle_s3_bucket = aws_s3_bucket.trust_store_bucket.id
+  ca_certificates_bundle_s3_key    = aws_s3_object.trust_store_cert.key
 }
