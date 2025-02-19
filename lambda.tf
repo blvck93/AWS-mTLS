@@ -28,11 +28,18 @@ resource "aws_lambda_function" "mtls_lambda" {
   role             = aws_iam_role.lambda_exec.arn
   handler          = "index.lambda_handler"
   runtime         = "python3.8"
-  filename        = ""
-  source_code_hash = filebase64sha256("lambda.zip")
 
-  code {
-    zip_file = <<EOF
+  source_code_hash = filebase64sha256(data.archive_file.lambda_package.output_path)
+
+  filename = data.archive_file.lambda_package.output_path
+}
+
+data "archive_file" "lambda_package" {
+  type        = "zip"
+  output_path = "lambda.zip"
+
+  source {
+    content  = <<EOF
 import json
 import hashlib
 
@@ -52,5 +59,6 @@ def lambda_handler(event, context):
         "body": "No valid certificate"
     }
 EOF
+    filename = "index.py"
   }
 }
