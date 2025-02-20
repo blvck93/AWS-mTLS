@@ -45,7 +45,7 @@ resource "aws_secretsmanager_secret_version" "trust_store_version" {
 }
 
 resource "aws_s3_bucket" "trust_store_bucket" {
-  bucket = "ec2-trust-store-bucket-${random_string.suffix.result}"
+  bucket = "ec2-trust-store-bucket-${random_string.suffix.result}" 
 }
 
 resource "aws_s3_object" "trust_store_cert" {
