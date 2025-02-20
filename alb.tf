@@ -30,9 +30,14 @@ resource "aws_lb_target_group" "api_tg" {
   name     = "api-tg-${random_string.suffix.result}"
   port     = 443
   protocol = "HTTPS"
+  target_type = "lambda"
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
+resource "aws_lb_target_group_attachment" "mtls-lambda" {
+  target_group_arn = aws_lb_target_group.api_tg.arn 
+  target_id = aws_lambda_function.mtls_lambda.arn
+}
 
 resource "aws_lb_listener" "https_api" {
   load_balancer_arn = aws_lb.webapp_alb.arn
