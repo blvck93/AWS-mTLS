@@ -9,7 +9,7 @@ resource "aws_lb" "webapp_alb" {
 
 # Request and validate an SSL certificate from AWS Certificate Manager (ACM)
 resource "aws_acm_certificate" "my_certificate" {
-  domain_name       = aws_lb.webapp_alb.dns_name
+  domain_name       = "blvck.ovh"
   validation_method = "DNS"
 
   lifecycle {
