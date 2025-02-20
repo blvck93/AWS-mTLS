@@ -27,7 +27,7 @@ resource "random_string" "suffix" {
 
 resource "aws_lb_target_group" "static_tg" {
   name     = "static-tg-${random_string.suffix.result}"
-  port     = 443
+  port     = 80
   protocol = "HTTPS"
   vpc_id   = aws_vpc.webapp_vpc.id
 }
@@ -46,10 +46,9 @@ resource "aws_lb_target_group_attachment" "ec2_attach" {
 
 resource "aws_lb_listener" "https_web" {
   load_balancer_arn = aws_lb.webapp_alb.arn
-  port              = 443
+  port              = 80
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn = data.aws_acm_certificate.existing_cert.arn
 
 
   default_action {

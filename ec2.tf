@@ -13,8 +13,15 @@ resource "aws_instance" "webapp_ec2" {
               EOF
 }
 
+resource "random_string" "suffix2" {
+  length  = 5
+  special = false
+  upper   = false
+}
+
+
 resource "aws_secretsmanager_secret" "trust_store" {
-  name = "ec2-trust-store-${random_string.suffix.result}"
+  name = "ec2-trust-store-${random_string.suffix2.result}"
 }
 
 resource "aws_secretsmanager_secret_version" "trust_store_version" {
