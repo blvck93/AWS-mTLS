@@ -24,12 +24,12 @@ resource "aws_acm_certificate_validation" "cert_validation" {
 # Associate the SSL certificate with the ALB listener
 resource "aws_lb_listener_certificate" "my-certificate" {
   listener_arn = aws_lb_listener.https_web.arn
-  certificate_arn = aws_acm_certificate.my-certificate.arn
+  certificate_arn = aws_acm_certificate.my_certificate.arn
 }
 
 resource "aws_lb_listener_certificate" "my-certificate2" {
   listener_arn = aws_lb_listener.https_api.arn
-  certificate_arn = aws_acm_certificate.my-certificate.arn
+  certificate_arn = aws_acm_certificate.my_certificate.arn
 }
 
 resource "random_string" "suffix" {
