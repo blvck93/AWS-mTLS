@@ -7,29 +7,26 @@ resource "aws_lb" "webapp_alb" {
 }
 
 
-# Request and validate an SSL certificate from AWS Certificate Manager (ACM)
-resource "aws_acm_certificate" "my_certificate" {
-  domain_name       = "blvck.ovh"
-  validation_method = "DNS"
-
-  lifecycle {
-    create_before_destroy = true
-  }
+# Fetch the existing ACM certificate
+data "aws_acm_certificate" "existing_cert" {
+  domain   = "blvck.ovh"
+  statuses = ["ISSUED"]  # Ensure it only fetches a valid issued certificate
 }
 
+# Use the existing certificate ARN for validation
 resource "aws_acm_certificate_validation" "cert_validation" {
-  certificate_arn = aws_acm_certificate.my_certificate.arn
+  certificate_arn = data.aws_acm_certificate.existing_cert.arn
 }
 
-# Associate the SSL certificate with the ALB listener
+# Associate the existing SSL certificate with the ALB listener
 resource "aws_lb_listener_certificate" "my-certificate" {
-  listener_arn = aws_lb_listener.https_web.arn
-  certificate_arn = aws_acm_certificate.my_certificate.arn
+  listener_arn   = aws_lb_listener.https_web.arn
+  certificate_arn = data.aws_acm_certificate.existing_cert.arn
 }
 
 resource "aws_lb_listener_certificate" "my-certificate2" {
-  listener_arn = aws_lb_listener.https_api.arn
-  certificate_arn = aws_acm_certificate.my_certificate.arn
+  listener_arn   = aws_lb_listener.https_api.arn
+  certificate_arn = data.aws_acm_certificate.existing_cert.arn
 }
 
 resource "random_string" "suffix" {
