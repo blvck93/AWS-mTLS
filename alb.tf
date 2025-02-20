@@ -49,7 +49,7 @@ resource "aws_lb_listener" "https_api" {
 
   mutual_authentication {
     mode            = "verify"
-    trust_store_arn = trust_store.alb_trust_store.arn
+    trust_store_arn = aws_lb_trust_store.alb_trust_store.arn
   }
 }
 
