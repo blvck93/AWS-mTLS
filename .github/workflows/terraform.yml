@@ -7,6 +7,12 @@ on:
   pull_request:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      destroy:
+        description: "Set to 'true' to destroy infrastructure"
+        required: false
+        default: "false"
 
 jobs:
   terraform:
@@ -19,14 +25,6 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
-      - name: Cache Terraform state
-        uses: actions/cache@v3
-        with:
-          path: terraform.tfstate
-          key: ${{ runner.os }}-terraform-${{ github.run_id }}
-          restore-keys: |
-            ${{ runner.os }}-terraform-
-
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -37,20 +35,16 @@ jobs:
       - name: Terraform Init
         run: terraform init
 
-      - name: Terraform Destroy
-        run: terraform destroy
-
       - name: Terraform Plan
+        if: github.event.inputs.destroy != 'true'
         run: |
           export TF_LOG=DEBUG
           terraform plan
 
       - name: Terraform Apply
-        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        if: github.event.inputs.destroy != 'true' && github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve
 
-      - name: Upload Terraform state
-        uses: actions/upload-artifact@v4
-        with:
-          name: terraform-state
-          path: terraform.tfstate
+      - name: Terraform Destroy
+        if: github.event.inputs.destroy == 'true'
+        run: terraform destroy -auto-approve
