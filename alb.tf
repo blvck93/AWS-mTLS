@@ -14,14 +14,14 @@ resource "random_string" "suffix" {
 
 resource "aws_lb_target_group" "static_tg" {
   name     = "static-tg-${random_string.suffix.result}"
-  port     = 80
+  port     = 443
   protocol = "HTTP"
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
 resource "aws_lb_target_group" "api_tg" {
   name     = "api-tg-${random_string.suffix.result}"
-  port     = 80
+  port     = 443
   protocol = "HTTP"
   vpc_id   = aws_vpc.webapp_vpc.id
 }
