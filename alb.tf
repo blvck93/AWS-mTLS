@@ -26,12 +26,22 @@ resource "aws_lb_target_group" "api_tg" {
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
+resource "aws_lb_target_group_attachment" "ec2" {
+  target_group_arn = aws_lb_target_group.static_tg.arn
+  target_id        = aws_instance.webapp_ec2.id
+}
+
+
+resource "aws_lb_target_group_attachment" "lambda_attach" {
+  target_group_arn = aws_lb_target_group.api_tg.arn
+  target_id        = aws_lambda_function.mtls_lambda.id
+}
+
 resource "aws_lb_listener" "https_web" {
   load_balancer_arn = aws_lb.webapp_alb.arn
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_acm_certificate.web_cert.arn
 
   default_action {
     type             = "forward"
@@ -44,7 +54,6 @@ resource "aws_lb_listener" "https_api" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_acm_certificate.api_cert.arn
 
   authentication_request {
     authentication_request_type = "mtls"
