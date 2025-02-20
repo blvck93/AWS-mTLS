@@ -45,7 +45,7 @@ resource "aws_lb_listener" "https_web" {
 
   default_action {
     type             = "forward"
-    target_group_arn = aws_lb_target_group.web_tg.arn
+    target_group_arn = aws_lb_target_group.static_tg.arn
   }
 }
 
@@ -62,6 +62,6 @@ resource "aws_lb_listener" "https_api" {
 
   default_action {
     type = "forward"
-    target_group_arn = aws_lb_target_group.lambda_tg.arn
+    target_group_arn = aws_lb_target_group.api_tg.arn 
   }
 }
