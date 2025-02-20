@@ -6,6 +6,12 @@ resource "aws_lb" "webapp_alb" {
   subnets           = [aws_subnet.webapp_subnet_1.id, aws_subnet.webapp_subnet_2.id]
 }
 
+
+data "aws_acm_certificate" "default" {
+  domain   = aws_lb.webapp_alb.dns_name
+  statuses = ["ISSUED"]
+}
+
 resource "random_string" "suffix" {
   length  = 10
   special = false
@@ -31,18 +37,12 @@ resource "aws_lb_target_group_attachment" "ec2_attach" {
   target_id        = aws_instance.webapp_ec2.id
 }
 
-
-resource "aws_lb_target_group_attachment" "lambda_attach" {
-  target_group_arn = aws_lb_target_group.api_tg.arn
-  target_id        = aws_lambda_function.mtls_lambda.id
-}
-
 resource "aws_lb_listener" "https_web" {
   load_balancer_arn = aws_lb.webapp_alb.arn
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_lb.webapp_alb.arn
+  certificate_arn   = aws_acm_certificate.default.arn
 
   default_action {
     type             = "forward"
@@ -55,7 +55,7 @@ resource "aws_lb_listener" "https_api" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = aws_lb.webapp_alb.arn
+  certificate_arn   = aws_acm_certificate.default.arn
 
   default_action {
     type = "forward"
