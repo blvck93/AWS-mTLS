@@ -63,7 +63,6 @@ resource "aws_lb_listener" "https_web" {
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
 
-  depends_on = [aws_acm_certificate_validation.cert_validation]
 
   default_action {
     type             = "forward"
@@ -77,7 +76,6 @@ resource "aws_lb_listener" "https_api" {
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
 
-  depends_on = [aws_acm_certificate_validation.cert_validation]
 
   default_action {
     type = "forward"
