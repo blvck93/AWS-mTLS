@@ -25,6 +25,7 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
+
 resource "aws_lb_target_group" "api_tg" {
   name     = "api-tg-${random_string.suffix.result}"
   port     = 443
@@ -44,6 +45,11 @@ resource "aws_lb_listener" "https_api" {
   default_action {
     type = "forward"
     target_group_arn = aws_lb_target_group.api_tg.arn 
+  }
+
+  mutual_authentication {
+    mode            = "verify"
+    trust_store_arn = trust_store.alb_trust_store.arn
   }
 }
 
