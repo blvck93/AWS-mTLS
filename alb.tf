@@ -15,14 +15,44 @@ resource "random_string" "suffix" {
 resource "aws_lb_target_group" "static_tg" {
   name     = "static-tg-${random_string.suffix.result}"
   port     = 443
-  protocol = "HTTP"
+  protocol = "HTTPS"
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
 resource "aws_lb_target_group" "api_tg" {
   name     = "api-tg-${random_string.suffix.result}"
   port     = 443
-  protocol = "HTTP"
+  protocol = "HTTPS"
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
+resource "aws_lb_listener" "https_web" {
+  load_balancer_arn = aws_lb.webapp_alb.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.web_cert.arn
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.web_tg.arn
+  }
+}
+
+resource "aws_lb_listener" "https_api" {
+  load_balancer_arn = aws_lb.webapp_alb.arn
+  port              = 443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_acm_certificate.api_cert.arn
+
+  authentication_request {
+    authentication_request_type = "mtls"
+    trust_store_arn             = aws_lb_trust_store.alb_trust_store.arn
+  }
+
+  default_action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.lambda_tg.arn
+  }
+}
