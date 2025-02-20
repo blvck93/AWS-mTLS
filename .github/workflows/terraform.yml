@@ -19,6 +19,14 @@ jobs:
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
 
+      - name: Cache Terraform state
+        uses: actions/cache@v3
+        with:
+          path: terraform.tfstate
+          key: ${{ runner.os }}-terraform-${{ github.run_id }}
+          restore-keys: |
+            ${{ runner.os }}-terraform-
+
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
@@ -30,7 +38,7 @@ jobs:
         run: terraform init
 
       - name: Terraform Destroy
-        run: terraform destroy 
+        run: terraform destroy
 
       - name: Terraform Plan
         run: |
@@ -40,3 +48,9 @@ jobs:
       - name: Terraform Apply
         if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: terraform apply -auto-approve
+
+      - name: Upload Terraform state
+        uses: actions/upload-artifact@v3
+        with:
+          name: terraform-state
+          path: terraform.tfstate
