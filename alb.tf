@@ -25,13 +25,6 @@ resource "random_string" "suffix" {
   upper   = false
 }
 
-resource "aws_lb_target_group" "static_tg" {
-  name     = "static-tg-${random_string.suffix.result}"
-  port     = 80
-  protocol = "HTTPS"
-  vpc_id   = aws_vpc.webapp_vpc.id
-}
-
 resource "aws_lb_target_group" "api_tg" {
   name     = "api-tg-${random_string.suffix.result}"
   port     = 443
@@ -39,23 +32,6 @@ resource "aws_lb_target_group" "api_tg" {
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
-resource "aws_lb_target_group_attachment" "ec2_attach" {
-  target_group_arn = aws_lb_target_group.static_tg.arn
-  target_id        = aws_instance.webapp_ec2.id
-}
-
-resource "aws_lb_listener" "https_web" {
-  load_balancer_arn = aws_lb.webapp_alb.arn
-  port              = 80
-  protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-
-
-  default_action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.static_tg.arn
-  }
-}
 
 resource "aws_lb_listener" "https_api" {
   load_balancer_arn = aws_lb.webapp_alb.arn
