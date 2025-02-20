@@ -1,5 +1,5 @@
 resource "aws_instance" "webapp_ec2" {
-  ami           = "ami-1234567890abcdef0" # Updated with a placeholder, verify correct AMI ID
+  ami           = "ami-053a45fff0a704a47" # Updated with a placeholder, verify correct AMI ID
   instance_type = "t3.micro"
   subnet_id     = aws_subnet.webapp_subnet_1.id
   security_groups = [aws_security_group.webapp_sg.name]
