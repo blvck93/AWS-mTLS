@@ -18,16 +18,6 @@ resource "aws_acm_certificate_validation" "cert_validation" {
   certificate_arn = data.aws_acm_certificate.existing_cert.arn
 }
 
-# Associate the existing SSL certificate with the ALB listener
-resource "aws_lb_listener_certificate" "my-certificate" {
-  listener_arn   = aws_lb_listener.https_web.arn
-  certificate_arn = data.aws_acm_certificate.existing_cert.arn
-}
-
-resource "aws_lb_listener_certificate" "my-certificate2" {
-  listener_arn   = aws_lb_listener.https_api.arn
-  certificate_arn = data.aws_acm_certificate.existing_cert.arn
-}
 
 resource "random_string" "suffix" {
   length  = 10
@@ -59,6 +49,7 @@ resource "aws_lb_listener" "https_web" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn = data.aws_acm_certificate.existing_cert.arn
 
 
   default_action {
@@ -72,6 +63,7 @@ resource "aws_lb_listener" "https_api" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn = data.aws_acm_certificate.existing_cert.arn
 
 
   default_action {
