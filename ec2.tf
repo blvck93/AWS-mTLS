@@ -2,7 +2,7 @@ resource "aws_instance" "webapp_ec2" {
   ami           = "ami-053a45fff0a704a47" # Updated with a placeholder, verify correct AMI ID
   instance_type = "t3.micro"
   subnet_id     = aws_subnet.webapp_subnet_1.id
-  security_groups = [aws_security_group.webapp_sg.name]
+  vpc_security_group_ids = [aws_security_group.webapp_sg.name]
   user_data = <<-EOF
               #!/bin/bash
               echo '<h1>Static Website</h1>' > /var/www/html/index.html
