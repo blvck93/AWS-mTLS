@@ -7,9 +7,20 @@ resource "aws_lb" "webapp_alb" {
 }
 
 
-data "aws_acm_certificate" "default" {
-  domain   = aws_lb.webapp_alb.dns_name
-  statuses = ["ISSUED"]
+# Request and validate an SSL certificate from AWS Certificate Manager (ACM)
+resource "aws_acm_certificate" "my-certificate" {
+  domain_name       = "example.com"
+  validation_method = "DNS"
+
+  tags = {
+    Name = "example.com SSL certificate"
+  }
+}
+
+# Associate the SSL certificate with the ALB listener
+resource "aws_lb_listener_certificate" "my-certificate" {
+  listener_arn = [ aws_lb_listener.https_api.arn, aws_lb_listener.https_web.arn ]
+  certificate_arn = aws_acm_certificate.my-certificate.arn
 }
 
 resource "random_string" "suffix" {
@@ -42,7 +53,6 @@ resource "aws_lb_listener" "https_web" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = data.aws_acm_certificate.default.arn
 
   default_action {
     type             = "forward"
@@ -55,7 +65,6 @@ resource "aws_lb_listener" "https_api" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = data.aws_acm_certificate.default.arn
 
   default_action {
     type = "forward"
