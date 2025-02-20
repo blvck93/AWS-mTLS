@@ -55,13 +55,26 @@ resource "aws_lb_listener" "https_api" {
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
 
-  authentication_request {
-    authentication_request_type = "mtls"
-    trust_store_arn             = aws_lb_trust_store.alb_trust_store.arn
-  }
-
   default_action {
     type = "forward"
     target_group_arn = aws_lb_target_group.api_tg.arn 
+  }
+}
+
+
+resource "aws_lb_listener_rule" "api_mtls_rule" {
+  listener_arn = aws_lb_listener.https_api.arn
+  priority     = 100
+
+  condition {
+    http_header {
+      http_header_name = "x-amzn-tls-client-cert"
+      values           = ["*"] # This ensures a client certificate is present
+    }
+  }
+
+  action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.api_tg.arn
   }
 }
