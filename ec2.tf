@@ -14,7 +14,7 @@ resource "aws_instance" "webapp_ec2" {
 }
 
 resource "aws_secretsmanager_secret" "trust_store" {
-  name = "ec2-trust-store"
+  name = "ec2-trust-store-20-02-2025"
 }
 
 resource "aws_secretsmanager_secret_version" "trust_store_version" {

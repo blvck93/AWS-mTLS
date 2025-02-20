@@ -26,7 +26,7 @@ resource "aws_lb_target_group" "api_tg" {
   vpc_id   = aws_vpc.webapp_vpc.id
 }
 
-resource "aws_lb_target_group_attachment" "ec2" {
+resource "aws_lb_target_group_attachment" "ec2_attach" {
   target_group_arn = aws_lb_target_group.static_tg.arn
   target_id        = aws_instance.webapp_ec2.id
 }
@@ -42,6 +42,7 @@ resource "aws_lb_listener" "https_web" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_lb.webapp_alb.arn
 
   default_action {
     type             = "forward"
@@ -54,6 +55,7 @@ resource "aws_lb_listener" "https_api" {
   port              = 443
   protocol          = "HTTPS"
   ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   = aws_lb.webapp_alb.arn
 
   default_action {
     type = "forward"
