@@ -57,21 +57,3 @@ resource "aws_lb_listener" "https_api" {
     trust_store_arn = aws_lb_trust_store.alb_trust_store.arn
   }
 }
-
-
-resource "aws_lb_listener_rule" "api_mtls_rule" {
-  listener_arn = aws_lb_listener.https_api.arn
-  priority     = 100
-
-  condition {
-    http_header {
-      http_header_name = "x-amzn-tls-client-cert"
-      values           = ["*"] # This ensures a client certificate is present
-    }
-  }
-
-  action {
-    type             = "forward"
-    target_group_arn = aws_lb_target_group.api_tg.arn
-  }
-}
