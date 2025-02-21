@@ -27,3 +27,8 @@ resource "aws_route" "webapp_route" {
   destination_cidr_block = "0.0.0.0/0"
   gateway_id             = aws_internet_gateway.webapp_igw.id
 }
+
+resource "aws_route_table_association" "public_subnets_rt" {
+ subnet_id      = [ aws_subnet.webapp_subnet_1.id, aws_subnet.webapp_subnet_2.id ]
+ route_table_id = aws_route_table.webapp_rt
+}

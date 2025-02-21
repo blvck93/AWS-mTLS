@@ -27,11 +27,19 @@ resource "random_string" "suffix" {
 
 
 resource "aws_lb_target_group" "api_tg" {
-  name     = "api-tg-${random_string.suffix.result}"
-  port     = 443
-  protocol = "HTTPS"
+  name        = "api-tg-${random_string.suffix.result}"
+  port        = 443
+  protocol    = "HTTPS"
   target_type = "lambda"
-  vpc_id   = aws_vpc.webapp_vpc.id
+  vpc_id      = aws_vpc.webapp_vpc.id
+
+  health_check {
+    enabled             = true
+    interval            = 30
+    timeout             = 5
+    path                = "/health"  # This path should be implemented in Lambda
+    matcher             = "200"
+  }
 }
 
 resource "aws_lb_target_group_attachment" "mtls-lambda" {

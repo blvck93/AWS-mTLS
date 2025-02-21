@@ -46,6 +46,16 @@ import hashlib
 
 def lambda_handler(event, context):
     headers = event.get("headers", {})
+    path = event.get("path", "")
+
+    # Handle ALB health check
+    if path == "/health":
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "text/plain"},
+            "body": "Healthy"
+        }
+
     cert_thumbprint = headers.get("x-amzn-tls-tls-client-cert-thumbprint", "No Certificate Provided")
     if cert_thumbprint != "No Certificate Provided":
         thumbprint_hash = hashlib.md5(cert_thumbprint.encode()).hexdigest()
@@ -54,6 +64,7 @@ def lambda_handler(event, context):
             "headers": {"Content-Type": "text/plain"},
             "body": f"Client Certificate Thumbprint Hash: {thumbprint_hash}"
         }
+    
     return {
         "statusCode": 403,
         "headers": {"Content-Type": "text/plain"},
