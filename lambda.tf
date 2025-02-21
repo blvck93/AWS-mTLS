@@ -87,15 +87,36 @@ data "archive_file" "lambda_package" {
   source {
     content  = <<EOF
 import json
+import hashlib
+import base64
+import urllib.parse
 
 def lambda_handler(event, context):
     headers = event.get("headers", {})
 
-    # Log all received headers (Check CloudWatch Logs)
-    print("Received Headers:", json.dumps(headers, indent=2))
+    # Extract the full client certificate (URL-encoded PEM format)
+    cert_pem_encoded = headers.get("x-amzn-mtls-clientcert-leaf", None)
 
-    # Extract client certificate thumbprint
-    cert_thumbprint = headers.get("x-amzn-tls-tls-client-cert-thumbprint", "No Certificate Provided")
+    if cert_pem_encoded:
+        try:
+            # Decode URL-encoded PEM certificate
+            cert_pem = urllib.parse.unquote(cert_pem_encoded)
+
+            # Convert PEM to DER (binary format) by stripping header/footer and base64 decoding
+            cert_pem_body = cert_pem.replace("-----BEGIN CERTIFICATE-----", "").replace("-----END CERTIFICATE-----", "").replace("\n", "")
+            cert_der = base64.b64decode(cert_pem_body)
+
+            # Compute SHA-1 Thumbprint
+            thumbprint = hashlib.sha1(cert_der).hexdigest().upper()
+
+        except Exception as e:
+            thumbprint = f"Error computing thumbprint: {str(e)}"
+
+    else:
+        thumbprint = "No Certificate Provided"
+
+    # Log all headers for debugging
+    print("Received Headers:", json.dumps(headers, indent=2))
 
     return {
         "statusCode": 200,
@@ -103,10 +124,11 @@ def lambda_handler(event, context):
             "Content-Type": "application/json"
         },
         "body": json.dumps({
-            "client_cert_thumbprint": cert_thumbprint,
-            "all_headers": headers  # Return all headers for debugging
+            "client_cert_thumbprint": thumbprint,
+            "all_headers": headers  # Return headers for debugging (optional)
         })
     }
+
 
 EOF
     filename = "index.py"
