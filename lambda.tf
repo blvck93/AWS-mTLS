@@ -37,7 +37,7 @@ resource "aws_lambda_function" "mtls_lambda" {
 
   environment {
     variables = {
-      EC2_URL = "http://${aws_instance.webapp.private_ip}"  # Use Private IP
+      EC2_URL = "http://${aws_instance.webapp_ec2.private_ip}"  # Use Private IP
     }
   }
 
