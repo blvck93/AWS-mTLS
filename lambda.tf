@@ -48,12 +48,20 @@ import os
 
 http = urllib3.PoolManager()
 
-# Replace with your EC2 instance's DNS or IP address
+# Replace with your EC2 instance's public DNS/IP
 EC2_URL = os.getenv("EC2_URL", "https://10.0.0.76")  # Example: https://54.123.45.67
 
 def lambda_handler(event, context):
     headers = event.get("headers", {})
     path = event.get("path", "/")
+    method = event.get("httpMethod", "GET")
+    query_string_params = event.get("queryStringParameters", {})
+    body = event.get("body", "")
+
+    # Convert query parameters to string
+    query_string = ""
+    if query_string_params:
+        query_string = "?" + "&".join([f"{key}={value}" for key, value in query_string_params.items()])
 
     # Handle ALB health check
     if path == "/health":
@@ -72,20 +80,24 @@ def lambda_handler(event, context):
         thumbprint_hash = "None"
 
     # Forward request to EC2
-    backend_url = f"{EC2_URL}{path}"  # Preserve original request path
-    forward_headers = {
-        "x-client-cert-thumbprint": thumbprint_hash,
-        "Content-Type": "application/json"
-    }
+    backend_url = f"{EC2_URL}{path}{query_string}"  # Preserve original path & query params
+    forward_headers = {key: value for key, value in headers.items()}  # Copy all headers
+    forward_headers["x-client-cert-thumbprint"] = thumbprint_hash  # Add certificate thumbprint
 
-    # Forward the request
-    response = http.request("GET", backend_url, headers=forward_headers)
+    # Forward request to EC2
+    response = http.request(
+        method=method,
+        url=backend_url,
+        headers=forward_headers,
+        body=body.encode() if body else None
+    )
 
     return {
         "statusCode": response.status,
         "headers": dict(response.headers),
         "body": response.data.decode("utf-8")
     }
+
 
 EOF
     filename = "index.py"
