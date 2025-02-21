@@ -65,3 +65,21 @@ resource "aws_lb_listener" "https_api" {
     trust_store_arn = aws_lb_trust_store.alb_trust_store.arn
   }
 }
+
+resource "aws_lb_listener_rule" "forward_client_cert" {
+  listener_arn = aws_lb_listener.https_api.arn
+  priority     = 1
+
+  action {
+    type = "forward"
+    target_group_arn = aws_lb_target_group.api_tg.arn
+  }
+
+  condition {
+    field  = "http-header"
+    http_header {
+      http_header_name = "x-amzn-tls-tls-client-cert-thumbprint"
+      values           = [".*"]  # Match any certificate
+    }
+  }
+}
