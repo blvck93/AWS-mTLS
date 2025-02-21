@@ -66,19 +66,55 @@ resource "aws_lb_listener" "https_api" {
   }
 }
 
-resource "aws_lb_listener_rule" "forward_client_cert" {
-  listener_arn = aws_lb_listener.https_api.arn
-  priority     = 1
+resource "aws_lb_target_group" "web_tg" {
+  name     = "static-tg-${random_string.suffix.result}"
+  port     = 443
+  protocol = "HTTPS"
+  vpc_id   = aws_vpc.webapp_vpc.id
+}
 
-  action {
+resource "aws_lb_listener" "https_web" {
+  load_balancer_arn = aws_lb.webapp_alb.arn
+  port              = 8443
+  protocol          = "HTTPS"
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn = data.aws_acm_certificate.existing_cert.arn
+
+
+  default_action {
     type = "forward"
-    target_group_arn = aws_lb_target_group.api_tg.arn
+    target_group_arn = aws_lb_target_group.web_tg.arn 
   }
 
-  condition {
-    http_header {
-      http_header_name = "x-amzn-tls-tls-client-cert-thumbprint"
-      values           = [".*"]  # Match any certificate thumbprint
-    }
+  authentication_request_extra_params = {
+    "x-amzn-tls-client-cert" = "on"
+    "x-amzn-tls-client-cert-info" = "on"
+  }
+
+  mutual_authentication {
+    mode            = "verify"
+    trust_store_arn = aws_lb_trust_store.alb_trust_store.arn
   }
 }
+
+resource "aws_lb_target_group_attachment" "ec2_attach" {
+  target_group_arn = aws_lb_target_group.web_tg.arn
+  target_id        = aws_instance.webapp_ec2.id
+}
+
+## resource "aws_lb_listener_rule" "forward_client_cert" {
+##   listener_arn = aws_lb_listener.https_api.arn
+##   priority     = 1
+## 
+##   action {
+##     type = "forward"
+##     target_group_arn = aws_lb_target_group.api_tg.arn
+##   }
+## 
+##   condition {
+##     http_header {
+##       http_header_name = "x-amzn-tls-tls-client-cert-thumbprint"
+##       values           = [".*"]  # Match any certificate thumbprint
+##     }
+##   }
+## }
