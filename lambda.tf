@@ -30,10 +30,21 @@ resource "aws_lambda_function" "mtls_lambda" {
   handler          = "index.lambda_handler"
   runtime         = "python3.8"
 
-  source_code_hash = filebase64sha256(data.archive_file.lambda_package.output_path)
+  vpc_config {
+    subnet_ids         = [aws_subnet.webapp_subnet_1.id]  # Use the correct subnet
+    security_group_ids = [aws_security_group.lambda_sg.id]
+  }
 
-  filename = data.archive_file.lambda_package.output_path
+  environment {
+    variables = {
+      EC2_URL = "http://${aws_instance.webapp.private_ip}"  # Use Private IP
+    }
+  }
+
+  source_code_hash = filebase64sha256(data.archive_file.lambda_package.output_path)
+  filename         = data.archive_file.lambda_package.output_path
 }
+
 
 data "archive_file" "lambda_package" {
   type        = "zip"
@@ -48,8 +59,8 @@ import os
 
 http = urllib3.PoolManager()
 
-# Replace with your EC2 instance's public DNS/IP
-EC2_URL = os.getenv("EC2_URL", "https://10.0.0.76")  # Example: https://54.123.45.67
+# Read EC2 private IP from environment variable
+EC2_URL = os.getenv("EC2_URL", "http://10.0.1.100")  # Default if env var is missing
 
 def lambda_handler(event, context):
     headers = event.get("headers", {})
@@ -79,8 +90,8 @@ def lambda_handler(event, context):
     else:
         thumbprint_hash = "None"
 
-    # Forward request to EC2
-    backend_url = f"{EC2_URL}{path}{query_string}"  # Preserve original path & query params
+    # Forward request to EC2 using the environment variable EC2_URL
+    backend_url = f"{EC2_URL}{path}{query_string}"  # Preserve path & query params
     forward_headers = {key: value for key, value in headers.items()}  # Copy all headers
     forward_headers["x-client-cert-thumbprint"] = thumbprint_hash  # Add certificate thumbprint
 
@@ -97,7 +108,6 @@ def lambda_handler(event, context):
         "headers": dict(response.headers),
         "body": response.data.decode("utf-8")
     }
-
 
 EOF
     filename = "index.py"
