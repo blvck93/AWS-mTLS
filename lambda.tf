@@ -19,6 +19,40 @@ resource "aws_lambda_permission" "alb_lambda" {
   source_arn    = aws_lb_target_group.api_tg.arn
 }
 
+resource "aws_iam_policy" "lambda_vpc_access" {
+  name        = "LambdaVPCAccessPolicy"
+  description = "Allows Lambda to access VPC resources"
+  
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Action = [
+          "ec2:CreateNetworkInterface",
+          "ec2:DescribeNetworkInterfaces",
+          "ec2:DeleteNetworkInterface"
+        ]
+        Resource = "*"
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
+        Resource = "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_role_policy_attachment" "lambda_vpc_policy_attach" {
+  policy_arn = aws_iam_policy.lambda_vpc_access.arn
+  role       = aws_iam_role.lambda_exec.name
+}
+
 # outputs.tf
 output "alb_dns_name" {
   value = aws_lb.webapp_alb.dns_name
