@@ -89,20 +89,22 @@ data "archive_file" "lambda_package" {
 import json
 
 def lambda_handler(event, context):
-    # Extract headers from the request
     headers = event.get("headers", {})
 
-    # Extract the client certificate thumbprint
+    # Log all received headers (Check CloudWatch Logs)
+    print("Received Headers:", json.dumps(headers, indent=2))
+
+    # Extract client certificate thumbprint
     cert_thumbprint = headers.get("x-amzn-tls-tls-client-cert-thumbprint", "No Certificate Provided")
 
-    # Return the certificate thumbprint in response
     return {
         "statusCode": 200,
         "headers": {
             "Content-Type": "application/json"
         },
         "body": json.dumps({
-            "client_cert_thumbprint": cert_thumbprint
+            "client_cert_thumbprint": cert_thumbprint,
+            "all_headers": headers  # Return all headers for debugging
         })
     }
 
