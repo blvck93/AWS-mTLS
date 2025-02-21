@@ -76,10 +76,9 @@ resource "aws_lb_listener_rule" "forward_client_cert" {
   }
 
   condition {
-    field  = "http-header"
     http_header {
       http_header_name = "x-amzn-tls-tls-client-cert-thumbprint"
-      values           = [".*"]  # Match any certificate
+      values           = [".*"]  # Match any certificate thumbprint
     }
   }
 }
