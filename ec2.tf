@@ -1,27 +1,11 @@
-### sudo tcpdump -A -s 10240 'tcp port 4080 and (((ip[2:2] - ((ip[0]&0xf)<<2)) - ((tcp[12]&0xf0)>>2)) != 0)' | egrep --line-buffered "^........(GET |HTTP\/|POST |HEAD )|^[A-Za-z0-9-]+: " | sed -r 's/^........(GET |HTTP\/|POST |HEAD )/\n\1/g'
-
-resource "aws_instance" "webapp_ec2" {
-  ami           = "ami-053a45fff0a704a47" # Updated with a placeholder, verify correct AMI ID
-  instance_type = "t3.micro"
-  subnet_id     = aws_subnet.webapp_subnet_1.id
-  vpc_security_group_ids = [aws_security_group.webapp_sg.id]
-  associate_public_ip_address = true
-  user_data = <<-EOF
-              #!/bin/bash
-              echo '<h1>Static Website</h1>' > /var/www/html/index.html
-              echo '<h1>API: ' > /var/www/html/api.html
-              echo $HTTP_CLIENT_THUMBPRINT >> /var/www/html/api.html
-              echo '</h1>' >> /var/www/html/api.html
-              service httpd start
-              EOF
-}
+### EC2 backend to be built here
+### For now only secret manager and s3 for it
 
 resource "random_string" "suffix2" {
   length  = 5
   special = false
   upper   = false
 }
-
 
 resource "aws_secretsmanager_secret" "trust_store" {
   name = "ec2-trust-store-${random_string.suffix2.result}"

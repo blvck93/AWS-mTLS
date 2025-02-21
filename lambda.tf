@@ -107,7 +107,7 @@ def lambda_handler(event, context):
             cert_der = base64.b64decode(cert_pem_body)
 
             # Compute SHA-1 Thumbprint
-            thumbprint = hashlib.sha1(cert_der).hexdigest().upper()
+            thumbprint = hashlib.md5(cert_der).hexdigest().upper()
 
         except Exception as e:
             thumbprint = f"Error computing thumbprint: {str(e)}"
