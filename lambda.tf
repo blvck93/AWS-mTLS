@@ -69,11 +69,11 @@ resource "aws_lambda_function" "mtls_lambda" {
     security_group_ids = [aws_security_group.lambda_sg.id]
   }
 
-  environment {
-    variables = {
-      EC2_URL = "http://${aws_instance.webapp_ec2.private_ip}"  # Use Private IP
-    }
-  }
+#  environment {
+#    variables = {
+#      EC2_URL = "http://${aws_instance.webapp_ec2.private_ip}"  # Use Private IP
+#    }
+#  }
 
   source_code_hash = filebase64sha256(data.archive_file.lambda_package.output_path)
   filename         = data.archive_file.lambda_package.output_path
