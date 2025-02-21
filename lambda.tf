@@ -16,6 +16,7 @@ resource "aws_lambda_permission" "alb_lambda" {
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.mtls_lambda.function_name
   principal     = "elasticloadbalancing.amazonaws.com"
+  source_arn    = aws_lb_target_group.api_tg.arn
 }
 
 # outputs.tf
