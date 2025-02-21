@@ -43,10 +43,17 @@ data "archive_file" "lambda_package" {
     content  = <<EOF
 import json
 import hashlib
+import urllib3
+import os
+
+http = urllib3.PoolManager()
+
+# Replace with your EC2 instance's DNS or IP address
+EC2_URL = os.getenv("EC2_URL", "https://10.0.0.76")  # Example: https://54.123.45.67
 
 def lambda_handler(event, context):
     headers = event.get("headers", {})
-    path = event.get("path", "")
+    path = event.get("path", "/")
 
     # Handle ALB health check
     if path == "/health":
@@ -56,20 +63,30 @@ def lambda_handler(event, context):
             "body": "Healthy"
         }
 
+    # Extract client certificate thumbprint
     cert_thumbprint = headers.get("x-amzn-tls-tls-client-cert-thumbprint", "No Certificate Provided")
+
     if cert_thumbprint != "No Certificate Provided":
         thumbprint_hash = hashlib.md5(cert_thumbprint.encode()).hexdigest()
-        return {
-            "statusCode": 200,
-            "headers": {"Content-Type": "text/plain"},
-            "body": f"Client Certificate Thumbprint Hash: {thumbprint_hash}"
-        }
-    
-    return {
-        "statusCode": 403,
-        "headers": {"Content-Type": "text/plain"},
-        "body": "No valid certificate"
+    else:
+        thumbprint_hash = "None"
+
+    # Forward request to EC2
+    backend_url = f"{EC2_URL}{path}"  # Preserve original request path
+    forward_headers = {
+        "x-client-cert-thumbprint": thumbprint_hash,
+        "Content-Type": "application/json"
     }
+
+    # Forward the request
+    response = http.request("GET", backend_url, headers=forward_headers)
+
+    return {
+        "statusCode": response.status,
+        "headers": dict(response.headers),
+        "body": response.data.decode("utf-8")
+    }
+
 EOF
     filename = "index.py"
   }
