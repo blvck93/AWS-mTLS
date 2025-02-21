@@ -94,7 +94,7 @@ import os
 http = urllib3.PoolManager()
 
 # Read EC2 private IP from environment variable
-EC2_URL = os.getenv("EC2_URL", "http://10.0.1.100")  # Default if env var is missing
+EC2_URL = os.getenv("EC2_URL", "http://10.0.0.76")  # Default if env var is missing
 
 def lambda_handler(event, context):
     headers = event.get("headers", {})
