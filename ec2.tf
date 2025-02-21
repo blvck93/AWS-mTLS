@@ -3,6 +3,7 @@ resource "aws_instance" "webapp_ec2" {
   instance_type = "t3.micro"
   subnet_id     = aws_subnet.webapp_subnet_1.id
   vpc_security_group_ids = [aws_security_group.webapp_sg.id]
+  associate_public_ip_address = true
   user_data = <<-EOF
               #!/bin/bash
               echo '<h1>Static Website</h1>' > /var/www/html/index.html
