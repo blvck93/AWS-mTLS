@@ -86,11 +86,6 @@ resource "aws_lb_listener" "https_web" {
     target_group_arn = aws_lb_target_group.web_tg.arn 
   }
 
-  authentication_request_extra_params = {
-    "x-amzn-tls-client-cert" = "on"
-    "x-amzn-tls-client-cert-info" = "on"
-  }
-
   mutual_authentication {
     mode            = "verify"
     trust_store_arn = aws_lb_trust_store.alb_trust_store.arn
