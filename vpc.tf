@@ -30,10 +30,10 @@ resource "aws_route" "webapp_route" {
 
 resource "aws_route_table_association" "public_subnet1_rt" {
  subnet_id      = aws_subnet.webapp_subnet_1.id
- route_table_id = aws_route_table.webapp_rt
+ route_table_id = aws_route_table.webapp_rt.id
 }
 
 resource "aws_route_table_association" "public_subnet2_rt" {
  subnet_id      = aws_subnet.webapp_subnet_2.id
- route_table_id = aws_route_table.webapp_rt
+ route_table_id = aws_route_table.webapp_rt.id
 }
